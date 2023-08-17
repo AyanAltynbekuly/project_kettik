@@ -1,12 +1,19 @@
 {
-  "buildCommand": "cd client && npm install && ./node_modules/vite/bin/vite.js build",
-  "outputDirectory": "client/dist",
-  "framework": "vite",
+  "framework": {
+    "version": 2,
+    "build": {
+      "command": "npm run build",
+      "output": "client/build"
+    }
+  },
   "rewrites": [
     {
       "source": "/server/(.*)",
       "destination": "/server/server.js"
     },
-    {"source": "/(.*)", "destination": "/"}
+    {
+      "source": "/(.*)",
+      "destination": "/client/build/$1"
+    }
   ]
 }
