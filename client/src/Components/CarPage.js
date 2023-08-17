@@ -3,6 +3,7 @@ import { trusted } from "mongoose";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import BookingWidget from "../BookingWidget";
+import Image from "./Image";
 
 export default function CarPage() {
   const { id } = useParams();
@@ -47,7 +48,7 @@ export default function CarPage() {
           {car?.photos?.length > 0 &&
             car.photos.map((photo) => (
               <div>
-                <img src={"http://localhost:8080/upload/" + photo} alt="" />
+                <Image src={photo} alt="" />
               </div>
             ))}
         </div>
@@ -90,10 +91,10 @@ export default function CarPage() {
           <div>
             {car.photos?.[0] && (
               <div>
-                <img
+                <Image
                   onClick={() => setShowAllPhotos(true)}
                   className="object-cover cursor-pointer"
-                  src={"http://localhost:8080/upload/" + car.photos[0]}
+                  src={car.photos[0]}
                   alt=""
                 />
               </div>
@@ -101,19 +102,19 @@ export default function CarPage() {
           </div>
           <div className="grid">
             {car.photos?.[1] && (
-              <img
+              <Image
                 onClick={() => setShowAllPhotos(true)}
                 className="object-center hover:object-top cursor-pointer"
-                src={"http://localhost:8080/upload/" + car.photos[1]}
+                src={car.photos[1]}
                 alt=""
               />
             )}
             <div className="overflow-hidden">
               {car.photos?.[2] && (
-                <img
+                <Image
                   onClick={() => setShowAllPhotos(true)}
                   className="object-center hover:object-bottom relative top-2 cursor-pointer"
-                  src={"http://localhost:8080/upload/" + car.photos[2]}
+                  src={car.photos[2]}
                   alt=""
                 />
               )}

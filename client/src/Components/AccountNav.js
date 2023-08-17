@@ -49,7 +49,7 @@ export default function AccountNav() {
             d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"
           />
         </svg>
-        My bookings
+        M̶y̶ ̶b̶o̶o̶k̶i̶n̶g̶s̶ (coming soon)
       </Link>
       <Link className={linkClasses("cars")} to={"/account/cars"}>
         <svg

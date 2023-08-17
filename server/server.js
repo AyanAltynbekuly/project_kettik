@@ -8,21 +8,51 @@ const Car = require("./models/cars");
 const booking = require("./models/booking");
 const cookieParser = require("cookie-parser");
 const imageDownoloader = require("image-downloader");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const multer = require("multer");
-const upload = multer();
+const mime = require("mime-types");
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const bcryptSalt = bcrypt.genSaltSync(10);
 const jwtSecret = "abgheheh24ijrijf9asd0=1dsa[123";
+const bucket = "ayan-kettik-app";
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
+app.use(
+  cors({
+    credentials: true,
+    origin: "http://192.168.0.12:3000",
+  })
+);
 app.use("/upload", express.static(__dirname + "/upload"));
-mongoose.connect(process.env.CONNECT_DB);
+
+async function uploadToS3(path, originalFilename, mimetype) {
+  const client = new S3Client({
+    region: "eu-north-1",
+    credentials: {
+      accessKeyId: process.env.S3_ACCESS_KEY,
+      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+    },
+  });
+  const parts = originalFilename.split(".");
+  const ext = parts[parts.length - 1];
+  const newFilename = Date.now() + "." + ext;
+  await client.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Body: fs.readFileSync(path),
+      Key: newFilename,
+      ContentType: mimetype,
+      ACL: "public-read",
+    })
+  );
+  return `https://${bucket}.s3.amazonaws.com/${newFilename}`;
+}
 
 app.get("/test", (req, res) => {
+  mongoose.connect(process.env.CONNECT_DB);
   res.json("Okay lets go");
 });
 
@@ -36,6 +66,7 @@ function getUserDataFromReq(req) {
 }
 
 app.post("/register", async (req, res) => {
+  mongoose.connect(process.env.CONNECT_DB);
   const { firstName, lastName, email, password } = req.body;
   try {
     const newUser = await User.create({
@@ -51,6 +82,7 @@ app.post("/register", async (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
+  mongoose.connect(process.env.CONNECT_DB);
   const { email, password } = req.body;
   const newUser = await User.findOne({ email });
   if (newUser) {
@@ -77,6 +109,7 @@ app.post("/login", async (req, res) => {
 });
 
 app.get("/profile", (req, res) => {
+  mongoose.connect(process.env.CONNECT_DB);
   const { token } = req.cookies;
   if (token) {
     jwt.verify(token, jwtSecret, {}, async (err, userData) => {
@@ -85,7 +118,7 @@ app.get("/profile", (req, res) => {
       res.json({ firstName, email, _id });
     });
   } else {
-    res.status(400);
+    res.status(null);
   }
 });
 
@@ -98,27 +131,32 @@ app.post("/uploadLink", async (req, res) => {
   const newName = "img" + Date.now() + ".jpg";
   await imageDownoloader.image({
     url: link,
-    dest: __dirname + "/upload/" + newName,
+    dest: "/tmp/" + newName,
   });
-  res.json(newName);
+  const url = await uploadToS3(
+    "/tmp/" + newName,
+    newName,
+    mime.lookup("/tmp/" + newName)
+  );
+  res.json(url);
 });
 
-const imgMiddleware = multer({ dest: "upload/" });
-app.post("/upload", imgMiddleware.array("photos", 100), (req, res) => {
+const imgMiddleware = multer({ dest: "/tmp" });
+app.post("/upload", imgMiddleware.array("photos", 100), async (req, res) => {
+  mongoose.connect(process.env.CONNECT_DB);
+
   const uploadedFiles = [];
   for (let i = 0; i < req.files.length; i++) {
-    const { path, originalname } = req.files[i];
-    const parts = originalname.split(".");
-    const ext = parts[parts.length - 1];
-    const newPath = path + "." + ext;
-    fs.renameSync(path, newPath);
-    uploadedFiles.push(newPath.replace("upload/", ""));
+    const { path, originalname, mimetype } = req.files[i];
+    const url = await uploadToS3(path, originalname, mimetype);
+    uploadedFiles.push(url);
   }
 
   res.json(uploadedFiles);
 });
 
 app.post("/cars", (req, res) => {
+  mongoose.connect(process.env.CONNECT_DB);
   const { token } = req.cookies;
   const {
     title,
@@ -152,6 +190,7 @@ app.post("/cars", (req, res) => {
 });
 
 app.get("/user-cars", (req, res) => {
+  mongoose.connect(process.env.CONNECT_DB);
   const { token } = req.cookies;
   jwt.verify(token, jwtSecret, {}, async (err, userData) => {
     const { id } = userData;
@@ -159,11 +198,13 @@ app.get("/user-cars", (req, res) => {
   });
 });
 app.get("/cars/:id", async (req, res) => {
+  mongoose.connect(process.env.CONNECT_DB);
   const { id } = req.params;
   res.json(await Car.findById(id));
 });
 
 app.put("/cars", async (req, res) => {
+  mongoose.connect(process.env.CONNECT_DB);
   const { token } = req.cookies;
   const {
     id,
@@ -201,10 +242,12 @@ app.put("/cars", async (req, res) => {
   });
 });
 app.get("/cars", async (req, res) => {
+  mongoose.connect(process.env.CONNECT_DB);
   res.json(await Car.find());
 });
 
 app.post("/trips", async (req, res) => {
+  mongoose.connect(process.env.CONNECT_DB);
   const userData = await getUserDataFromReq(req);
   const { car, tripStart, tripEnd, pickUpLocation, name, phone, price } =
     req.body;
@@ -229,6 +272,7 @@ app.post("/trips", async (req, res) => {
 });
 
 app.get("/trips", async (req, res) => {
+  mongoose.connect(process.env.CONNECT_DB);
   const userData = await getUserDataFromReq(req);
   res.json(await booking.find({ user: userData.id }).populate("Car"));
 });

@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import Image from "./Image";
 
 export default function IndexPage() {
   const [car, setCar] = useState([]);
@@ -17,9 +18,9 @@ export default function IndexPage() {
           <Link to={"/car/" + car._id}>
             <div className="bg-gray-500 mb-2 rounded-2xl flex">
               {car.photos?.[0] && (
-                <img
+                <Image
                   className="rounded-2xl object-cover aspect-square"
-                  src={"http://localhost:8080/upload/" + car.photos?.[0]}
+                  src={car.photos?.[0]}
                   alt=""
                 />
               )}
