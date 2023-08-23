@@ -14,7 +14,7 @@ export default function Profile() {
   }
 
   async function logout() {
-    await axios.post("/logout");
+    await axios.post("/api/logout");
     setRedicrect("/");
     setUser(null);
   }
@@ -24,7 +24,7 @@ export default function Profile() {
   }
 
   if (ready && !user && !redirect) {
-    return <Navigate to={"/login"} />;
+    return <Navigate to={"/api/login"} />;
   }
 
   if (redirect) {
