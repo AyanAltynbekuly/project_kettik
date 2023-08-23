@@ -3,17 +3,8 @@
     { "src": "client/package.json", "use": "@vercel/static-build" },
     { "src": "server/package.json", "use": "@vercel/node" }
   ],
-  "routes": [
-    {
-      "src": "/server/(.*)",
-      "dest": "/server/index.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/client/dist/$1"
-    }
-  ],
   "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
+    { "source": "/server/(.*)", "destination": "/server/server.js" },
+    { "source": "/(.*)", "destination": "/client/dist/$1" }
   ]
 }
