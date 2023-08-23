@@ -1,10 +1,12 @@
 {
-  "builds": [
-    { "src": "client/package.json", "use": "@vercel/static-build" },
-    { "src": "server/package.json", "use": "@vercel/node" }
-  ],
+  "buildCommand": "cd client && npm install && npm run build",
+  "outputDirectory": "client/dist",
+  "framework": "create-react-app",
   "rewrites": [
-    { "source": "/server/(.*)", "destination": "/server/server.js" },
-    { "source": "/(.*)", "destination": "/client/dist/$1" }
+    {
+      "source": "/server/(.*)",
+      "destination": "/server/server.js"
+    },
+    {"source": "/(.*)", "destination": "/"}
   ]
 }

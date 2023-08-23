@@ -14,8 +14,9 @@ import CarPage from "./Components/CarPage";
 import BookingsPage from "./Components/BookingsPage";
 import BookingPage from "./Components/BookingPage";
 
-axios.defaults.baseURL = "http://localhost:8080/";
+axios.defaults.baseURL = process.env.REACT_APP_BASE_URL;
 axios.defaults.withCredentials = true;
+
 function App() {
   return (
     <UserContextProvider>

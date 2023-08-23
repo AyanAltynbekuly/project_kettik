@@ -26,7 +26,7 @@ app.use(
     origin: "http://192.168.0.12:3000",
   })
 );
-app.use("/upload", express.static(__dirname + "/upload"));
+app.use("/api/upload", express.static(__dirname + "/upload"));
 
 async function uploadToS3(path, originalFilename, mimetype) {
   const client = new S3Client({
@@ -51,7 +51,7 @@ async function uploadToS3(path, originalFilename, mimetype) {
   return `https://${bucket}.s3.amazonaws.com/${newFilename}`;
 }
 
-app.get("/test", (req, res) => {
+app.get("/api/test", (req, res) => {
   mongoose.connect(process.env.CONNECT_DB);
   res.json("Okay lets go");
 });
@@ -65,7 +65,7 @@ function getUserDataFromReq(req) {
   });
 }
 
-app.post("/register", async (req, res) => {
+app.post("/api/register", async (req, res) => {
   mongoose.connect(process.env.CONNECT_DB);
   const { firstName, lastName, email, password } = req.body;
   try {
@@ -81,7 +81,7 @@ app.post("/register", async (req, res) => {
   }
 });
 
-app.post("/login", async (req, res) => {
+app.post("/api/login", async (req, res) => {
   mongoose.connect(process.env.CONNECT_DB);
   const { email, password } = req.body;
   const newUser = await User.findOne({ email });
@@ -108,7 +108,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.get("/profile", (req, res) => {
+app.get("/api/profile", (req, res) => {
   mongoose.connect(process.env.CONNECT_DB);
   const { token } = req.cookies;
   if (token) {
@@ -122,11 +122,11 @@ app.get("/profile", (req, res) => {
   }
 });
 
-app.post("/logout", (req, res) => {
+app.post("/api/logout", (req, res) => {
   res.cookie("token", "").json(true);
 });
 
-app.post("/uploadLink", async (req, res) => {
+app.post("/api/uploadLink", async (req, res) => {
   const { link } = req.body;
   const newName = "img" + Date.now() + ".jpg";
   await imageDownoloader.image({
@@ -142,20 +142,24 @@ app.post("/uploadLink", async (req, res) => {
 });
 
 const imgMiddleware = multer({ dest: "/tmp" });
-app.post("/upload", imgMiddleware.array("photos", 100), async (req, res) => {
-  mongoose.connect(process.env.CONNECT_DB);
+app.post(
+  "/api/upload",
+  imgMiddleware.array("photos", 100),
+  async (req, res) => {
+    mongoose.connect(process.env.CONNECT_DB);
 
-  const uploadedFiles = [];
-  for (let i = 0; i < req.files.length; i++) {
-    const { path, originalname, mimetype } = req.files[i];
-    const url = await uploadToS3(path, originalname, mimetype);
-    uploadedFiles.push(url);
+    const uploadedFiles = [];
+    for (let i = 0; i < req.files.length; i++) {
+      const { path, originalname, mimetype } = req.files[i];
+      const url = await uploadToS3(path, originalname, mimetype);
+      uploadedFiles.push(url);
+    }
+
+    res.json(uploadedFiles);
   }
+);
 
-  res.json(uploadedFiles);
-});
-
-app.post("/cars", (req, res) => {
+app.post("/api/cars", (req, res) => {
   mongoose.connect(process.env.CONNECT_DB);
   const { token } = req.cookies;
   const {
@@ -189,7 +193,7 @@ app.post("/cars", (req, res) => {
   });
 });
 
-app.get("/user-cars", (req, res) => {
+app.get("/api/user-cars", (req, res) => {
   mongoose.connect(process.env.CONNECT_DB);
   const { token } = req.cookies;
   jwt.verify(token, jwtSecret, {}, async (err, userData) => {
@@ -197,13 +201,13 @@ app.get("/user-cars", (req, res) => {
     res.json(await Car.find({ owner: id }));
   });
 });
-app.get("/cars/:id", async (req, res) => {
+app.get("/api/cars/:id", async (req, res) => {
   mongoose.connect(process.env.CONNECT_DB);
   const { id } = req.params;
   res.json(await Car.findById(id));
 });
 
-app.put("/cars", async (req, res) => {
+app.put("/api/cars", async (req, res) => {
   mongoose.connect(process.env.CONNECT_DB);
   const { token } = req.cookies;
   const {
@@ -241,12 +245,12 @@ app.put("/cars", async (req, res) => {
     }
   });
 });
-app.get("/cars", async (req, res) => {
+app.get("/api/cars", async (req, res) => {
   mongoose.connect(process.env.CONNECT_DB);
   res.json(await Car.find());
 });
 
-app.post("/trips", async (req, res) => {
+app.post("/api/trips", async (req, res) => {
   mongoose.connect(process.env.CONNECT_DB);
   const userData = await getUserDataFromReq(req);
   const { car, tripStart, tripEnd, pickUpLocation, name, phone, price } =
@@ -271,7 +275,7 @@ app.post("/trips", async (req, res) => {
     });
 });
 
-app.get("/trips", async (req, res) => {
+app.get("/api/trips", async (req, res) => {
   mongoose.connect(process.env.CONNECT_DB);
   const userData = await getUserDataFromReq(req);
   res.json(await booking.find({ user: userData.id }).populate("Car"));
