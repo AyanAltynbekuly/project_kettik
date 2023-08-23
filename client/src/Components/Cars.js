@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { Navigate, Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import CarImage from "../CarImage.js";
 import AccountNav from "./AccountNav.js";
 

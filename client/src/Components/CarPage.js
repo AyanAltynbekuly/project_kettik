@@ -1,5 +1,4 @@
 import axios from "axios";
-import { trusted } from "mongoose";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import BookingWidget from "../BookingWidget";
@@ -62,6 +61,7 @@ export default function CarPage() {
       <a
         className="flex gap-1 my-3 block font-semibold underline"
         target="_blank"
+        rel="noreferrer"
         href={"http://maps.google.com/?q=" + car.address}
       >
         <svg
